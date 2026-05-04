@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SpendSphere</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="app-header" role="banner">
+    <div class="header-left">
+      <h1>SpendSphere</h1>
+      <p class="subtitle">Track, visualize, and export your spending.</p>
+    </div>
+    <div id="authSection" class="budget-card" style="margin-bottom: 20px;">
+      <h2 style="margin-bottom: 10px;">Login / Signup</h2>
+      <input type="text" id="usernameInput" placeholder="Username"
+        style="margin-right: 10px; padding: 8px; border-radius: 4px; background: var(--surface); color: white; border: 1px solid var(--border);" />
+      <input type="password" id="passwordInput" placeholder="Password"
+        style="margin-right: 10px; padding: 8px; border-radius: 4px; background: var(--surface); color: white; border: 1px solid var(--border);" />
+      <button id="loginBtn" class="save-btn" style="background: var(--primary);">Login</button>
+      <button id="signupBtn" class="save-btn" style="background: var(--secondary);">Sign Up</button>
+      <button id="logoutBtn" class="save-btn" style="background: #ef4444; display: none;">Logout</button>
+    </div>
+
+    <div class="budget-card" aria-labelledby="budget-title">
+      <div class="budget-row">
+        <div>
+          <h2 id="budget-title">Monthly Budget</h2>
+          <div class="budget-inputs">
+            <label for="budgetAmount" class="visually-hidden">Budget amount</label>
+            <input id="budgetAmount" type="number" min="0" step="0.01" placeholder="0.00" />
+            <button id="saveBudgetBtn" class="btn primary" aria-label="Save budget">Save</button>
+          </div>
+        </div>
+        <div class="budget-stats">
+          <div class="stat">
+            <span class="label">Spent</span>
+            <span id="spentThisMonth" class="value">₹0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Remaining</span>
+            <span id="remainingBudget" class="value">₹0</span>
+          </div>
+        </div>
+      </div>
+      <div class="progress" aria-label="Budget progress" aria-live="polite">
+        <div id="budgetProgress" class="progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- NEW GROUPS SECTION -->
+    <section class="card" aria-labelledby="groups-title" id="groupsSection" style="display: none;">
+      <h2 id="groups-title">Your Groups</h2>
+      <div id="groupsList" style="margin-bottom: 20px; color: var(--primary);">
+        <!-- Groups injected here -->
+      </div>
+
+      <div class="grid" style="align-items: end;">
+        <div class="field">
+          <label for="newGroupName">Create a New Group</label>
+          <input id="newGroupName" placeholder="e.g. Roommates" />
+        </div>
+        <button id="createGroupBtn" class="btn primary">Create</button>
+      </div>
+
+      <div class="grid"
+        style="align-items: end; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+        <div class="field">
+          <label for="addMemberGroupId">Select Group</label>
+          <select id="addMemberGroupId"></select>
+        </div>
+        <div class="field">
+          <label for="newMemberUsername">Add Friend (Username)</label>
+          <input id="newMemberUsername" placeholder="Friend's username" />
+        </div>
+        <button id="addMemberBtn" class="btn secondary">Add Member</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="add-transaction-title">
+      <h2 id="add-transaction-title">Add a transaction</h2>
+      <form id="txForm">
+        <div class="grid">
+          <div class="field">
+            <label for="txVisibility">Visibility</label>
+            <select id="txVisibility">
+              <option value="">Personal</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="txTitle">Title</label>
+            <input id="txTitle" required placeholder="e.g., Groceries" />
+          </div>
+          <div class="field">
+            <label for="txAmount">Amount</label>
+            <input id="txAmount" type="number" required step="0.01" placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label for="txCategory">Category</label>
+            <select id="txCategory" required>
+              <option value="" disabled selected>Select</option>
+              <option>Food</option>
+              <option>Transport</option>
+              <option>Shopping</option>
+              <option>Bills</option>
+              <option>Health</option>
+              <option>Entertainment</option>
+              <option>Education</option>
+              <option>Others</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="txDate">Date</label>
+            <input id="txDate" type="date" required />
+          </div>
+          <div class="field field-notes">
+            <label for="txNotes">Notes</label>
+            <textarea id="txNotes" rows="1" placeholder="Optional"></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn primary" type="submit">Add</button>
+            <button class="btn" type="reset">Reset</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="filters-title">
+      <h2 id="filters-title">Filters</h2>
+      <div class="filters grid">
+        <div class="field">
+          <label for="searchBox">Search</label>
+          <input id="searchBox" placeholder="Title or notes..." />
+        </div>
+        <div class="field">
+          <label for="fromDate">From</label>
+          <input id="fromDate" type="date" />
+        </div>
+        <div class="field">
+          <label for="toDate">To</label>
+          <input id="toDate" type="date" />
+        </div>
+        <div class="field">
+          <label for="catFilter">Category</label>
+          <select id="catFilter">
+            <option value="">All</option>
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Shopping</option>
+            <option>Bills</option>
+            <option>Health</option>
+            <option>Entertainment</option>
+            <option>Education</option>
+            <option>Others</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button id="clearFilters" class="btn">Clear</button>
+          <button id="exportBtn" class="btn">Export JSON</button>
+          <label class="btn file-btn" for="importFile">Import JSON</label>
+          <input id="importFile" type="file" accept="application/json" hidden />
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="list-title">
+      <div class="list-header">
+        <h2 id="list-title">Transactions</h2>
+        <div class="list-meta">
+          <span id="txCount">0</span> items • Total <span id="txTotal">₹0</span>
+        </div>
+      </div>
+      <div class="responsive-table">
+        <table id="txTable">
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              <th scope="col">Category</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Date</th>
+              <th scope="col">Notes</th>
+              <th scope="col" class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="txTbody">
+            <!-- rows injected -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card charts" aria-labelledby="charts-title">
+      <h2 id="charts-title">Insights</h2>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Category breakdown</h3>
+          <canvas id="pieChart" aria-label="Category pie chart" role="img"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Monthly spend trend</h3>
+          <canvas id="lineChart" aria-label="Monthly spend trend chart" role="img"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Data is stored locally in your browser (LocalStorage). Backup using Export/Import JSON.</p>
+  </footer>
+
+  <template id="rowTemplate">
+    <tr>
+      <td data-col="title"></td>
+      <td data-col="category"></td>
+      <td data-col="amount" class="mono"></td>
+      <td data-col="date" class="mono"></td>
+      <td data-col="notes"></td>
+      <td class="row-actions">
+        <button class="icon-btn edit" aria-label="Edit transaction">✏️</button>
+        <button class="icon-btn delete" aria-label="Delete transaction">🗑️</button>
+      </td>
+    </tr>
+  </template>
+
+  <dialog id="editDialog" aria-label="Edit transaction dialog">
+    <form method="dialog" id="editForm" class="dialog-form">
+      <h3>Edit transaction</h3>
+      <input type="hidden" id="editId" />
+      <div class="grid">
+        <div class="field">
+          <label for="editTitle">Title</label>
+          <input id="editTitle" required />
+        </div>
+        <div class="field">
+          <label for="editAmount">Amount</label>
+          <input id="editAmount" type="number" required step="0.01" />
+        </div>
+        <div class="field">
+          <label for="editCategory">Category</label>
+          <select id="editCategory" required>
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Shopping</option>
+            <option>Bills</option>
+            <option>Health</option>
+            <option>Entertainment</option>
+            <option>Education</option>
+            <option>Others</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="editDate">Date</label>
+          <input id="editDate" type="date" required />
+        </div>
+        <div class="field field-notes">
+          <label for="editNotes">Notes</label>
+          <textarea id="editNotes" rows="1"></textarea>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button class="btn primary" value="save">Save</button>
+        <button class="btn" value="cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
