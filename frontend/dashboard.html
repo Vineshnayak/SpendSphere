@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - SpendSphere</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">SpendSphere</div>
+        <nav>
+            <a href="#" class="nav-link active" id="navDashboard">Dashboard</a>
+            <a href="#" class="nav-link" id="navGroups">Groups</a>
+            <a href="#" class="nav-link" id="navSettings">Settings</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navigation -->
+        <header class="top-nav">
+            <h2 id="pageTitle" style="margin: 0;">Dashboard</h2>
+            <div class="user-profile">
+                <span id="userNameDisplay">User</span>
+                <button class="btn btn-danger" onclick="logout()" style="padding: 6px 12px; font-size: 14px;">Logout</button>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- Dashboard View -->
+            <div id="viewDashboard">
+                <div class="grid-3">
+                    <div class="card">
+                        <p style="color: var(--text-muted); font-weight: 600;">Total Spent</p>
+                        <p class="stat-value" id="txTotal">₹0</p>
+                    </div>
+                    <div class="card">
+                        <p style="color: var(--text-muted); font-weight: 600;">Transactions</p>
+                        <p class="stat-value" id="txCount">0</p>
+                    </div>
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <p style="color: var(--text-muted); font-weight: 600;">Monthly Budget</p>
+                            <p id="budgetLabel" style="font-size: 14px; font-weight: 600;">₹0 / ₹0 (0%)</p>
+                        </div>
+                        <div style="height: 10px; background: var(--border); border-radius: 5px; margin-top: 10px; overflow: hidden;">
+                            <div id="budgetProgress" style="height: 100%; width: 0%; background: var(--primary); transition: width 0.3s, background-color 0.3s;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <!-- Add Transaction Card -->
+                    <div class="card">
+                        <h2>Add Transaction</h2>
+                        <form id="txForm">
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Title</label>
+                                    <input type="text" id="txTitle" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Amount (₹)</label>
+                                    <input type="number" id="txAmount" class="form-control" required step="0.01">
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Category</label>
+                                    <select id="txCategory" class="form-control" required>
+                                        <option value="" disabled selected>Select</option>
+                                        <option>Food</option>
+                                        <option>Transport</option>
+                                        <option>Shopping</option>
+                                        <option>Bills</option>
+                                        <option>Entertainment</option>
+                                        <option>Others</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="date" id="txDate" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Spent By</label>
+                                    <input type="text" id="txSpentBy" class="form-control" placeholder="Your name or member">
+                                </div>
+                                <div class="form-group">
+                                    <label>Visibility</label>
+                                    <select id="txVisibility" class="form-control">
+                                        <option value="">Personal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Add Expense</button>
+                        </form>
+                    </div>
+
+                    <!-- Charts Card -->
+                    <div class="card">
+                        <h2>Spending by Category</h2>
+                        <div style="height: 250px; display: flex; justify-content: center;">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card">
+                    <h2>Recent Transactions</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txTbody">
+                            <!-- Injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Groups View (Hidden initially) -->
+            <div id="viewGroups" style="display: none;">
+                <div class="grid-2">
+                    <div class="card">
+                        <h2>Create New Group</h2>
+                        <div class="form-group">
+                            <input type="text" id="newGroupName" class="form-control" placeholder="Group Name (e.g. Roommates)">
+                        </div>
+                        <button id="createGroupBtn" class="btn btn-primary">Create</button>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>Join Group</h2>
+                        <div class="form-group">
+                            <input type="text" id="joinGroupKey" class="form-control" placeholder="Enter 6-character Join Key">
+                        </div>
+                        <button id="joinGroupBtn" class="btn btn-primary">Join</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Your Groups</h2>
+                    <div id="groupsList"></div>
+                </div>
+            </div>
+
+            <!-- Settings View (Hidden initially) -->
+            <div id="viewSettings" style="display: none;">
+                <div class="card" style="max-width: 500px;">
+                    <h2>Settings</h2>
+                    <form id="budgetForm">
+                        <div class="form-group">
+                            <label>Monthly Budget (₹)</label>
+                            <input type="number" id="budgetInput" class="form-control" required step="0.01" min="0">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Save Budget</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,57 +1,127 @@
-# SpendSphere 🚀
+# SpendSphere
 
-A full-stack, real-time collaborative expense tracker.
+A collaborative expense tracker built with FastAPI, MongoDB, and Vanilla JavaScript. Supports personal and group-based expense tracking with real-time synchronization via WebSockets.
 
-SpendSphere allows you to securely track your personal expenses, visualize spending trends, and create groups to share and track expenses collaboratively with friends in real-time.
+---
 
-## Features ✨
-- **Full-Stack Architecture**: Built with a robust FastAPI (Python) backend and a responsive Vanilla JS frontend.
-- **Secure Authentication**: End-to-end user authentication using JWT and bcrypt password hashing.
-- **Persistent Storage**: Data is safely stored in a local MongoDB database.
-- **Real-Time Collaboration**: Live WebSockets broadcast updates instantly when friends add expenses to a shared group.
-- **Group Management**: Create groups, invite friends by username, and toggle expense visibility between 'Personal' and 'Group'.
-- **Interactive Insights**: Category pie charts and monthly spend trend line charts powered by Chart.js.
-- **Accessible & Responsive**: Modern UI that works flawlessly on desktop and mobile devices.
+## Features
 
-## Tech Stack 🛠
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript, Chart.js
-- **Backend**: Python, FastAPI, Uvicorn, WebSockets
-- **Database**: MongoDB (PyMongo)
-- **Security**: PyJWT, passlib, bcrypt
+- **JWT Authentication** — Signup and login with bcrypt-hashed passwords and JWT-based session management.
+- **Personal Expense Tracking** — Add, view, and delete transactions with category, date, and "spent by" metadata.
+- **Monthly Budget** — Set a monthly budget per user; a progress bar reflects spending in real time with colour-coded thresholds (normal / warning / exceeded).
+- **Group Management** — Create expense groups. Each group is assigned a unique 6-character join key. Users join groups by entering this key; no admin approval needed beyond sharing the key.
+- **Admin Controls** — The group creator is the admin. Admins can remove members, view the join key, and delete or leave the group (ownership transfers to the next member on leave).
+- **Member Actions** — Non-admin members can leave a group at any time.
+- **Real-Time Updates** — WebSocket connections push live notifications when a group expense is added, triggering an automatic data refresh for all connected members.
+- **Spending Chart** — Doughnut chart (Chart.js) visualises spending by category.
 
-## Getting Started 🚀
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.10, FastAPI, Uvicorn |
+| Database | MongoDB (via PyMongo) |
+| Auth | PyJWT, bcrypt |
+| Real-Time | WebSockets (FastAPI native) |
+| Frontend | HTML5, CSS3, Vanilla JavaScript |
+| Charts | Chart.js |
+
+---
+
+## Project Structure
+
+```
+SpendSphere/
+├── backend/
+│   ├── main.py                  # FastAPI app entry point
+│   ├── database/
+│   │   └── connection.py        # MongoDB client and collection references
+│   ├── models/
+│   │   └── schemas.py           # Pydantic request/response models
+│   ├── routes/
+│   │   ├── auth_routes.py       # POST /signup, POST /login
+│   │   ├── expense_routes.py    # GET/POST/DELETE /expense(s)
+│   │   ├── group_routes.py      # CRUD + join/leave for groups
+│   │   ├── user_routes.py       # GET /user, PUT /user/budget
+│   │   └── ws_routes.py         # WebSocket endpoint
+│   └── services/
+│       └── auth_service.py      # JWT creation and password hashing
+└── frontend/
+    ├── index.html               # Redirects to login
+    ├── login.html
+    ├── signup.html
+    ├── dashboard.html           # Main app UI
+    ├── css/
+    │   └── style.css
+    └── js/
+        ├── api.js               # API_URL constant + toast helper
+        ├── auth.js              # Login/signup logic
+        └── dashboard.js         # Dashboard logic, groups, WebSocket, budget
+```
+
+---
+
+## Local Setup
 
 ### Prerequisites
 - Python 3.10+
-- MongoDB instance running locally (port 27021 default)
+- MongoDB running on port `27021`
+- A modern web browser
 
-### 1. Database Setup
-Ensure MongoDB is running. If you are using the local database data folder:
+### 1. Start MongoDB
+
 ```bash
-cd backend
-mongod --port 27021 --dbpath ./database_data
+mongod --port 27021 --dbpath ./backend/database_data
 ```
 
-### 2. Backend Setup
-Navigate to the `backend` folder, set up your virtual environment, and run the server:
+### 2. Set Up and Start the Backend
+
 ```bash
 cd backend
+python3 -m venv venv
 source venv/bin/activate
-pip install fastapi uvicorn pymongo pyjwt passlib bcrypt==4.0.1 websockets
+pip install fastapi uvicorn pymongo pyjwt bcrypt==4.0.1 websockets
 uvicorn main:app --reload
 ```
-The backend will run on `http://127.0.0.1:8000`.
 
-### 3. Frontend Setup
-Navigate to the `frontend` folder and run a simple local web server:
+Backend runs at `http://127.0.0.1:8000`.
+
+### 3. Start the Frontend
+
 ```bash
 cd frontend
 python3 -m http.server 8080
 ```
-Then open `http://localhost:8080` in your web browser.
 
-## Usage 💡
-1. **Sign Up**: Create an account to start tracking your personal expenses.
-2. **Create a Group**: Create a group and invite your friends using their exact username.
-3. **Add Expenses**: Use the visibility dropdown to choose whether an expense is personal or meant for a group.
-4. **Watch it Live**: If a friend posts to a shared group, watch your browser update in real-time!
+Open `http://localhost:8080` in your browser.
+
+---
+
+## API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/signup` | Register a new user |
+| POST | `/login` | Authenticate and receive a JWT |
+| GET | `/user` | Get current user profile and budget |
+| PUT | `/user/budget` | Update the monthly budget |
+| GET | `/expenses` | List all expenses visible to the user |
+| POST | `/expense` | Add a new expense |
+| DELETE | `/expense/{id}` | Delete an expense |
+| GET | `/groups` | List groups the user belongs to |
+| POST | `/groups` | Create a group (creator becomes admin) |
+| POST | `/groups/join` | Join a group using a 6-char join key |
+| DELETE | `/groups/{id}` | Delete a group (admin only) |
+| DELETE | `/groups/{id}/members/{user}` | Remove a member (admin only) |
+| DELETE | `/groups/{id}/leave` | Leave a group (transfers ownership if admin) |
+| WS | `/ws/{token}` | WebSocket connection for live updates |
+
+---
+
+## Notes
+
+- The JWT `SECRET_KEY` in `services/auth_service.py` should be moved to an environment variable before any production deployment.
+- MongoDB unique indexes are applied on `username` (users collection) and `name` (groups collection) at startup.
+- The `database_data/` directory stores MongoDB data files and should be excluded from version control (already in `.gitignore`).
